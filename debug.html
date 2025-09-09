@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0e1a;
+            color: #e2e8f0;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        h1 {
+            color: #2CE8A2;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #2CE8A2;
+        }
+    </style>
+</head>
+<body>
+    <h1>FunWords 测试页面</h1>
+    <div class="status">如果你能看到这个页面，说明HTML加载正常</div>
+    <div class="status" id="react-status">正在检查React...</div>
+    <div class="status" id="app-status">正在检查App组件...</div>
+    
+    <script type="module">
+        try {
+            // 检查是否可以加载模块
+            const response = await fetch('/assets/index-CaxdgSf7.js');
+            if (response.ok) {
+                document.getElementById('react-status').innerHTML = 
+                    '<span class="success">✓ JavaScript文件加载成功</span>';
+                
+                // 尝试动态导入React
+                const React = await import('react');
+                if (React) {
+                    document.getElementById('app-status').innerHTML = 
+                        '<span class="success">✓ React加载成功</span>';
+                }
+            } else {
+                document.getElementById('react-status').innerHTML = 
+                    '<span class="error">✗ JavaScript文件加载失败</span>';
+            }
+        } catch (error) {
+            document.getElementById('react-status').innerHTML = 
+                '<span class="error">✗ 错误: ' + error.message + '</span>';
+        }
+    </script>
+</body>
+</html>

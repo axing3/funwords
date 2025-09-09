@@ -1,0 +1,22 @@
+{
+  "name": "FunWords - 高考趣味背单词",
+  "short_name": "FunWords",
+  "description": "离线单词学习应用，包含高中3500词汇，支持选择题、打字题和听力题三种模式",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#2CE8A2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games"],
+  "lang": "zh-CN",
+  "scope": "/",
+  "serviceworker": "/sw.js"
+}

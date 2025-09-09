@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直接样式测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .test-content {
+            text-align: center;
+            padding: 40px;
+            background-color: #111111;
+            border: 4px solid #2CE8A2;
+        }
+        h1 {
+            color: #2CE8A2;
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+        .info {
+            font-size: 16px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: #2CE8A2;
+            color: #000000;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #26d18f;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="test-content">
+        <h1>FUNWORDS 测试</h1>
+        <div class="info">
+            <p>如果你能看到这个绿色的标题，说明样式工作正常</p>
+            <p>背景应该是纯黑色</p>
+            <p>文字应该是纯白色</p>
+        </div>
+        <div style="margin-top: 40px;">
+            <button class="button" onclick="alert('按钮工作正常！')">测试按钮</button>
+        </div>
+        <div style="margin-top: 30px; font-size: 12px;">
+            <a href="index.html" style="color: #2CE8A2;">返回主页</a> | 
+            <a href="static-test.html" style="color: #2CE8A2;">静态测试页</a>
+        </div>
+    </div>
+</body>
+</html>

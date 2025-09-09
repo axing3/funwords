@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频测试 - FunWords</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #2CE8A2;
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: #2CE8A2;
+            color: #000000;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #26d18f;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 2px solid #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>音频测试页面</h1>
+        
+        <div class="info">
+            <p>点击下面的按钮测试音效</p>
+            <p>如果听不到声音，请检查：</p>
+            <ul style="text-align: left;">
+                <li>浏览器音量是否开启</li>
+                <li>系统音量是否开启</li>
+                <li>是否被静音</li>
+            </ul>
+        </div>
+        
+        <button class="button" onclick="playCorrectSound()">答对音效</button>
+        <button class="button" onclick="playWrongSound()">答错音效</button>
+        <button class="button" onclick="playGameOverSound()">游戏结束音效</button>
+        
+        <div style="margin-top: 30px;">
+            <a href="index.html" style="color: #2CE8A2;">返回主页</a>
+        </div>
+    </div>
+
+    <script>
+        let audioContext = null;
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+        
+        function playCorrectSound() {
+            const ctx = initAudio();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
+            oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.3);
+        }
+        
+        function playWrongSound() {
+            const ctx = initAudio();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.2);
+        }
+        
+        function playGameOverSound() {
+            const ctx = initAudio();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            oscillator.frequency.setValueAtTime(400, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.5);
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.5);
+        }
+    </script>
+</body>
+</html>

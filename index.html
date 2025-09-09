@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunWords - 高考趣味背单词</title>
+    <meta name="description" content="离线单词学习应用，包含高中3500词汇，支持选择题、打字题和听力题三种模式">
+    <meta name="theme-color" content="#2CE8A2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            color: #ffffff;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .game-title {
+            font-size: 48px;
+            color: #2CE8A2;
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.8);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.8), 0 0 10px rgba(44, 232, 162, 0.5); }
+            to { text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.8), 0 0 20px rgba(44, 232, 162, 0.8); }
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 40px;
+        }
+        
+        .menu-card {
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 4px solid #2CE8A2;
+            padding: 40px;
+            box-shadow: 
+                -4px -4px 0px 0px rgba(44, 232, 162, 0.3),
+                4px -4px 0px 0px rgba(44, 232, 162, 0.3),
+                -4px 4px 0px 0px rgba(0, 0, 0, 0.5),
+                4px 4px 0px 0px rgba(0, 0, 0, 0.5),
+                8px 8px 0px 0px rgba(0, 0, 0, 0.3);
+            animation: cardFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .menu-item {
+            display: block;
+            width: 300px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            background-color: #000000;
+            color: #2CE8A2;
+            text-decoration: none;
+            border: 3px solid #2CE8A2;
+            font-size: 14px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(44, 232, 162, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .menu-item:hover::before {
+            left: 100%;
+        }
+        
+        .menu-item:hover {
+            transform: translate(4px, 4px);
+            box-shadow: 
+                -4px -4px 0px 0px rgba(44, 232, 162, 0.5),
+                4px -4px 0px 0px rgba(44, 232, 162, 0.5),
+                -4px 4px 0px 0px rgba(0, 0, 0, 0.5),
+                4px 4px 0px 0px rgba(0, 0, 0, 0.5);
+            color: #000000;
+            background-color: #2CE8A2;
+        }
+        
+        .high-score {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #ffff00;
+        }
+        
+        .player-lives {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #ff3333;
+        }
+        
+        .game-mode-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: #2CE8A2;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .powerup-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #ffff00;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border: 3px solid #ffff00;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .screen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            z-index: 999;
+        }
+        
+        .screen-flash {
+            animation: screenFlash 0.3s ease-out;
+        }
+        
+        @keyframes screenFlash {
+            0% { background-color: rgba(255, 255, 255, 0); }
+            50% { background-color: rgba(255, 255, 255, 0.3); }
+            100% { background-color: rgba(255, 255, 255, 0); }
+        }
+        
+        .screen-shake {
+            animation: screenShake 0.5s;
+        }
+        
+        @keyframes screenShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-overlay" id="screenOverlay"></div>
+    <div class="powerup-notification" id="powerupNotification"></div>
+    
+    <div class="game-mode-indicator" id="gameModeIndicator"></div>
+    <div class="player-lives" id="playerLives"></div>
+    
+    <div class="container">
+        <h1 class="game-title">FUNWORDS</h1>
+        <p class="subtitle">高考趣味背单词</p>
+        
+        <div class="menu-card">
+            <a href="game.html?mode=choice" class="menu-item">选择题模式</a>
+            <a href="game.html?mode=spelling" class="menu-item">拼写模式</a>
+            <a href="game.html?mode=audio" class="menu-item">听力模式</a>
+            <a href="game.html?mode=mixed" class="menu-item">混合模式</a>
+            <a href="practice.html" class="menu-item">练习模式</a>
+            <a href="settings.html" class="menu-item">游戏设置</a>
+        </div>
+        
+        <div class="high-score">
+            最高分: <span id="highScoreDisplay">0</span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        高中3500词 · 离线可用 · 趣味学习
+    </div>
+
+    <script>
+        // 游戏音频系统
+        class GameAudio {
+            constructor() {
+                this.audioContext = null;
+                this.enabled = true;
+            }
+            
+            init() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            
+            playSound(type) {
+                if (!this.enabled || !this.audioContext) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                switch(type) {
+                    case 'menuMove':
+                        oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                        break;
+                    case 'menuSelect':
+                        oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(554.37, this.audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(659.25, this.audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        break;
+                    case 'powerup':
+                        oscillator.type = 'square';
+                        oscillator.frequency.setValueAtTime(523.25, this.audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(1046.50, this.audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        break;
+                }
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.5);
+            }
+        }
+        
+        // 游戏数据管理
+        class GameData {
+            constructor() {
+                this.loadGameData();
+            }
+            
+            loadGameData() {
+                // 高考3500词汇库（精简版示例）
+                this.vocabulary = [
+                    // 基础词汇
+                    { word: 'abandon', meaning: '放弃', phonetic: '/əˈbændən/', audio: 'abandon.mp3' },
+                    { word: 'ability', meaning: '能力', phonetic: '/əˈbɪləti/', audio: 'ability.mp3' },
+                    { word: 'absent', meaning: '缺席的', phonetic: '/ˈæbsənt/', audio: 'absent.mp3' },
+                    { word: 'academy', meaning: '学院', phonetic: '/əˈkædəmi/', audio: 'academy.mp3' },
+                    { word: 'accept', meaning: '接受', phonetic: '/əkˈsept/', audio: 'accept.mp3' },
+                    { word: 'accident', meaning: '事故', phonetic: '/ˈæksɪdənt/', audio: 'accident.mp3' },
+                    { word: 'achieve', meaning: '实现', phonetic: '/əˈtʃiːv/', audio: 'achieve.mp3' },
+                    { word: 'across', meaning: '穿过', phonetic: '/əˈkrɒs/', audio: 'across.mp3' },
+                    { word: 'active', meaning: '积极的', phonetic: '/ˈæktɪv/', audio: 'active.mp3' },
+                    { word: 'actual', meaning: '实际的', phonetic: '/ˈæktʃuəl/', audio: 'actual.mp3' },
+                    // 进阶词汇
+                    { word: 'brilliant', meaning: '杰出的', phonetic: '/ˈbrɪljənt/', audio: 'brilliant.mp3' },
+                    { word: 'concentrate', meaning: '集中注意力', phonetic: '/ˈkɒnsəntreɪt/', audio: 'concentrate.mp3' },
+                    { word: 'determine', meaning: '决定', phonetic: '/dɪˈtɜːmɪn/', audio: 'determine.mp3' },
+                    { word: 'efficient', meaning: '高效的', phonetic: '/ɪˈfɪʃnt/', audio: 'efficient.mp3' },
+                    { word: 'fascinating', meaning: '迷人的', phonetic: '/ˈfæsɪneɪtɪŋ/', audio: 'fascinating.mp3' },
+                    // 高级词汇
+                    { word: 'ambiguous', meaning: '模糊的', phonetic: '/æmˈbɪɡjuəs/', audio: 'ambiguous.mp3' },
+                    { word: 'benevolent', meaning: '仁慈的', phonetic: '/bəˈnevələnt/', audio: 'benevolent.mp3' },
+                    { word: 'controversial', meaning: '有争议的', phonetic: '/ˌkɒntrəˈvɜːʃl/', audio: 'controversial.mp3' },
+                    { word: 'deteriorate', meaning: '恶化', phonetic: '/dɪˈtɪəriəreɪt/', audio: 'deteriorate.mp3' },
+                    { word: 'eloquent', meaning: '雄辩的', phonetic: '/ˈeləkwənt/', audio: 'eloquent.mp3' }
+                ];
+                
+                // 难度分级
+                this.difficultyLevels = {
+                    easy: this.vocabulary.slice(0, 10),
+                    medium: this.vocabulary.slice(5, 15),
+                    hard: this.vocabulary.slice(10, 20)
+                };
+            }
+            
+            getRandomWord(difficulty = 'medium') {
+                const words = this.difficultyLevels[difficulty];
+                return words[Math.floor(Math.random() * words.length)];
+            }
+            
+            getWrongOptions(word, count = 3) {
+                const wrongOptions = [];
+                const usedMeanings = new Set([word.meaning]);
+                
+                while (wrongOptions.length < count) {
+                    const randomWord = this.vocabulary[Math.floor(Math.random() * this.vocabulary.length)];
+                    if (!usedMeanings.has(randomWord.meaning)) {
+                        wrongOptions.push(randomWord.meaning);
+                        usedMeanings.add(randomWord.meaning);
+                    }
+                }
+                
+                return wrongOptions;
+            }
+        }
+        
+        // 游戏状态管理
+        class GameState {
+            constructor() {
+                this.highScore = parseInt(localStorage.getItem('funwords-highscore') || '0');
+                this.totalGamesPlayed = parseInt(localStorage.getItem('funwords-total-games') || '0');
+                this.totalWordsLearned = parseInt(localStorage.getItem('funwords-total-words') || '0');
+                this.unlockedModes = JSON.parse(localStorage.getItem('funwords-unlocked-modes') || '["choice"]');
+                this.playerLevel = parseInt(localStorage.getItem('funwords-player-level') || '1');
+                this.playerExp = parseInt(localStorage.getItem('funwords-player-exp') || '0');
+            }
+            
+            save() {
+                localStorage.setItem('funwords-highscore', this.highScore.toString());
+                localStorage.setItem('funwords-total-games', this.totalGamesPlayed.toString());
+                localStorage.setItem('funwords-total-words', this.totalWordsLearned.toString());
+                localStorage.setItem('funwords-unlocked-modes', JSON.stringify(this.unlockedModes));
+                localStorage.setItem('funwords-player-level', this.playerLevel.toString());
+                localStorage.setItem('funwords-player-exp', this.playerExp.toString());
+            }
+            
+            addExp(amount) {
+                this.playerExp += amount;
+                const expNeeded = this.playerLevel * 100;
+                if (this.playerExp >= expNeeded) {
+                    this.playerLevel++;
+                    this.playerExp -= expNeeded;
+                    showNotification(`升级了！等级 ${this.playerLevel}`);
+                }
+            }
+        }
+        
+        // 初始化游戏
+        const gameAudio = new GameAudio();
+        const gameData = new GameData();
+        const gameState = new GameState();
+        
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.getElementById('powerupNotification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            gameAudio.playSound('powerup');
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+        
+        // 屏幕特效
+        function screenFlash() {
+            const overlay = document.getElementById('screenOverlay');
+            overlay.classList.add('screen-flash');
+            setTimeout(() => {
+                overlay.classList.remove('screen-flash');
+            }, 300);
+        }
+        
+        function screenShake() {
+            const overlay = document.getElementById('screenOverlay');
+            overlay.classList.add('screen-shake');
+            setTimeout(() => {
+                overlay.classList.remove('screen-shake');
+            }, 500);
+        }
+        
+        // 菜单音效
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                gameAudio.init();
+                gameAudio.playSound('menuMove');
+            });
+            
+            item.addEventListener('click', (e) => {
+                gameAudio.playSound('menuSelect');
+                screenFlash();
+                
+                // 检查模式是否解锁
+                const mode = e.target.getAttribute('href').split('=')[1];
+                if (mode && !gameState.unlockedModes.includes(mode)) {
+                    e.preventDefault();
+                    showNotification('该模式尚未解锁！');
+                    screenShake();
+                }
+            });
+        });
+        
+        // 更新显示
+        document.getElementById('highScoreDisplay').textContent = gameState.highScore;
+        
+        // 显示玩家等级
+        if (gameState.playerLevel > 1) {
+            const modeIndicator = document.getElementById('gameModeIndicator');
+            modeIndicator.textContent = `LV.${gameState.playerLevel} EXP.${gameState.playerExp}`;
+        }
+        
+        // 检查并显示新解锁内容
+        window.addEventListener('load', () => {
+            // 根据等级解锁新模式
+            if (gameState.playerLevel >= 3 && !gameState.unlockedModes.includes('spelling')) {
+                gameState.unlockedModes.push('spelling');
+                gameState.save();
+                showNotification('解锁拼写模式！');
+            }
+            if (gameState.playerLevel >= 5 && !gameState.unlockedModes.includes('audio')) {
+                gameState.unlockedModes.push('audio');
+                gameState.save();
+                showNotification('解锁听力模式！');
+            }
+            if (gameState.playerLevel >= 10 && !gameState.unlockedModes.includes('mixed')) {
+                gameState.unlockedModes.push('mixed');
+                gameState.save();
+                showNotification('解锁混合模式！');
+            }
+        });
+        
+        // 触摸设备支持
+        if ('ontouchstart' in window) {
+            document.body.classList.add('touch-device');
+        }
+    </script>
+</body>
+</html>

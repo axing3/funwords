@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习模式 - FunWords</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            color: #ffffff;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .title {
+            font-size: 36px;
+            color: #2CE8A2;
+            margin-bottom: 10px;
+        }
+        
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .word-card {
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 3px solid #444;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .word-card:hover {
+            border-color: #2CE8A2;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(44, 232, 162, 0.3);
+        }
+        
+        .word-card.learned {
+            border-color: #00ff00;
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .word-card.difficult {
+            border-color: #ff3333;
+            background-color: rgba(255, 51, 51, 0.1);
+        }
+        
+        .word-text {
+            font-size: 20px;
+            color: #2CE8A2;
+            margin-bottom: 10px;
+        }
+        
+        .word-meaning {
+            font-size: 14px;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        
+        .word-phonetic {
+            font-size: 12px;
+            color: #cccccc;
+        }
+        
+        .progress-bar {
+            background-color: rgba(255, 255, 255, 0.1);
+            height: 20px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #2CE8A2, #00ff88);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            color: #ffffff;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 12px 24px;
+            background-color: #2CE8A2;
+            color: #000000;
+            text-decoration: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 
+                -2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+                2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+                -2px 2px 0px 0px rgba(0, 0, 0, 0.3),
+                2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #666;
+            color: #ffffff;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 2px solid #444;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            color: #2CE8A2;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #cccccc;
+        }
+        
+        .filter-controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .filter-btn {
+            margin: 0 5px;
+            padding: 8px 16px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border: 2px solid #666;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn.active {
+            background-color: #2CE8A2;
+            color: #000000;
+            border-color: #2CE8A2;
+        }
+        
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #2CE8A2;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .word-detail {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 4px solid #2CE8A2;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .word-detail.active {
+            display: block;
+        }
+        
+        .detail-word {
+            font-size: 36px;
+            color: #2CE8A2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .detail-meaning {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-phonetic {
+            font-size: 14px;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+        
+        .detail-example {
+            font-size: 14px;
+            color: #ffff00;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .detail-close {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            background-color: #666;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← 返回主页</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">练习模式</h1>
+            <p>选择单词进行学习</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalWords">20</div>
+                <div class="stat-label">总词数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="learnedWords">0</div>
+                <div class="stat-label">已掌握</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="reviewWords">0</div>
+                <div class="stat-label">需复习</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="masteryRate">0%</div>
+                <div class="stat-label">掌握率</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-text" id="progressText">0 / 20</div>
+        </div>
+        
+        <div class="filter-controls">
+            <button class="filter-btn active" onclick="filterWords('all')">全部</button>
+            <button class="filter-btn" onclick="filterWords('new')">新单词</button>
+            <button class="filter-btn" onclick="filterWords('learned')">已掌握</button>
+            <button class="filter-btn" onclick="filterWords('difficult')">困难</button>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="startRandomPractice()">随机练习</button>
+            <button class="btn btn-secondary" onclick="resetProgress()">重置进度</button>
+        </div>
+        
+        <div class="word-grid" id="wordGrid">
+            <!-- 动态生成单词卡片 -->
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay" onclick="closeWordDetail()"></div>
+    <div class="word-detail" id="wordDetail">
+        <!-- 动态显示单词详情 -->
+    </div>
+
+    <script>
+        // 词汇数据
+        const vocabulary = [
+            { id: 1, word: 'abandon', meaning: '放弃', phonetic: '/əˈbændən/', example: 'Never abandon hope.', status: 'new' },
+            { id: 2, word: 'ability', meaning: '能力', phonetic: '/əˈbɪləti/', example: 'He has the ability to solve problems.', status: 'new' },
+            { id: 3, word: 'absent', meaning: '缺席的', phonetic: '/ˈæbsənt/', example: 'Why were you absent yesterday?', status: 'new' },
+            { id: 4, word: 'academy', meaning: '学院', phonetic: '/əˈkædəmi/', example: 'She graduated from a military academy.', status: 'new' },
+            { id: 5, word: 'accept', meaning: '接受', phonetic: '/əkˈsept/', example: 'I accept your apology.', status: 'new' },
+            { id: 6, word: 'accident', meaning: '事故', phonetic: '/ˈæksɪdənt/', example: 'There was a car accident.', status: 'new' },
+            { id: 7, word: 'achieve', meaning: '实现', phonetic: '/əˈtʃiːv/', example: 'You can achieve anything.', status: 'new' },
+            { id: 8, word: 'across', meaning: '穿过', phonetic: '/əˈkrɒs/', example: 'He walked across the street.', status: 'new' },
+            { id: 9, word: 'active', meaning: '积极的', phonetic: '/ˈæktɪv/', example: 'She leads an active life.', status: 'new' },
+            { id: 10, word: 'actual', meaning: '实际的', phonetic: '/ˈæktʃuəl/', example: 'The actual cost is higher.', status: 'new' },
+            { id: 11, word: 'brilliant', meaning: '杰出的', phonetic: '/ˈbrɪljənt/', example: 'She is a brilliant scientist.', status: 'new' },
+            { id: 12, word: 'concentrate', meaning: '集中注意力', phonetic: '/ˈkɒnsəntreɪt/', example: 'Concentrate on your work.', status: 'new' },
+            { id: 13, word: 'determine', meaning: '决定', phonetic: '/dɪˈtɜːmɪn/', example: 'I need to determine the cause.', status: 'new' },
+            { id: 14, word: 'efficient', meaning: '高效的', phonetic: '/ɪˈfɪʃnt/', example: 'This is an efficient method.', status: 'new' },
+            { id: 15, word: 'fascinating', meaning: '迷人的', phonetic: '/ˈfæsɪneɪtɪŋ/', example: 'A fascinating story.', status: 'new' },
+            { id: 16, word: 'ambiguous', meaning: '模糊的', phonetic: '/æmˈbɪɡjuəs/', example: 'The answer is ambiguous.', status: 'new' },
+            { id: 17, word: 'benevolent', meaning: '仁慈的', phonetic: '/bəˈnevələnt/', example: 'A benevolent king.', status: 'new' },
+            { id: 18, word: 'controversial', meaning: '有争议的', phonetic: '/ˌkɒntrəˈvɜːʃl/', example: 'A controversial decision.', status: 'new' },
+            { id: 19, word: 'deteriorate', meaning: '恶化', phonetic: '/dɪˈtɪəriəreɪt/', example: 'His health deteriorated.', status: 'new' },
+            { id: 20, word: 'eloquent', meaning: '雄辩的', phonetic: '/ˈeləkwənt/', example: 'An eloquent speaker.', status: 'new' }
+        ];
+        
+        // 加载学习进度
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('funwords-practice-progress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                vocabulary.forEach(word => {
+                    const savedWord = progress.find(w => w.id === word.id);
+                    if (savedWord) {
+                        word.status = savedWord.status;
+                        word.correctCount = savedWord.correctCount || 0;
+                        word.wrongCount = savedWord.wrongCount || 0;
+                    }
+                });
+            }
+        }
+        
+        // 保存学习进度
+        function saveProgress() {
+            const progress = vocabulary.map(word => ({
+                id: word.id,
+                status: word.status,
+                correctCount: word.correctCount || 0,
+                wrongCount: word.wrongCount || 0
+            }));
+            localStorage.setItem('funwords-practice-progress', JSON.stringify(progress));
+        }
+        
+        // 渲染单词列表
+        function renderWords(filter = 'all') {
+            const wordGrid = document.getElementById('wordGrid');
+            wordGrid.innerHTML = '';
+            
+            let filteredWords = vocabulary;
+            if (filter !== 'all') {
+                filteredWords = vocabulary.filter(word => word.status === filter);
+            }
+            
+            filteredWords.forEach(word => {
+                const wordCard = document.createElement('div');
+                wordCard.className = `word-card ${word.status}`;
+                wordCard.onclick = () => showWordDetail(word);
+                
+                wordCard.innerHTML = `
+                    <div class="word-text">${word.word}</div>
+                    <div class="word-meaning">${word.meaning}</div>
+                    <div class="word-phonetic">${word.phonetic}</div>
+                `;
+                
+                wordGrid.appendChild(wordCard);
+            });
+            
+            updateStats();
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const total = vocabulary.length;
+            const learned = vocabulary.filter(w => w.status === 'learned').length;
+            const difficult = vocabulary.filter(w => w.status === 'difficult').length;
+            const review = vocabulary.filter(w => w.status === 'new' || w.status === 'difficult').length;
+            const mastery = Math.round((learned / total) * 100);
+            
+            document.getElementById('totalWords').textContent = total;
+            document.getElementById('learnedWords').textContent = learned;
+            document.getElementById('reviewWords').textContent = review;
+            document.getElementById('masteryRate').textContent = mastery + '%';
+            
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            progressFill.style.width = mastery + '%';
+            progressText.textContent = `${learned} / ${total}`;
+        }
+        
+        // 显示单词详情
+        function showWordDetail(word) {
+            const overlay = document.getElementById('overlay');
+            const detail = document.getElementById('wordDetail');
+            
+            detail.innerHTML = `
+                <div class="detail-word">${word.word}</div>
+                <div class="detail-meaning">${word.meaning}</div>
+                <div class="detail-phonetic">${word.phonetic}</div>
+                <div class="detail-example">例句: ${word.example}</div>
+                <div style="font-size: 14px; margin-bottom: 20px;">
+                    正确: ${word.correctCount || 0} | 错误: ${word.wrongCount || 0}
+                </div>
+                <button class="btn" onclick="markAsLearned(${word.id})">标记为已掌握</button>
+                <button class="btn btn-secondary" onclick="markAsDifficult(${word.id})">标记为困难</button>
+                <button class="detail-close" onclick="closeWordDetail()">关闭</button>
+            `;
+            
+            overlay.classList.add('active');
+            detail.classList.add('active');
+        }
+        
+        // 关闭单词详情
+        function closeWordDetail() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('wordDetail').classList.remove('active');
+        }
+        
+        // 标记为已掌握
+        function markAsLearned(wordId) {
+            const word = vocabulary.find(w => w.id === wordId);
+            word.status = 'learned';
+            word.correctCount = (word.correctCount || 0) + 1;
+            saveProgress();
+            renderWords(getCurrentFilter());
+            closeWordDetail();
+        }
+        
+        // 标记为困难
+        function markAsDifficult(wordId) {
+            const word = vocabulary.find(w => w.id === wordId);
+            word.status = 'difficult';
+            word.wrongCount = (word.wrongCount || 0) + 1;
+            saveProgress();
+            renderWords(getCurrentFilter());
+            closeWordDetail();
+        }
+        
+        // 筛选单词
+        function filterWords(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderWords(filter);
+        }
+        
+        // 获取当前筛选器
+        function getCurrentFilter() {
+            const activeBtn = document.querySelector('.filter-btn.active');
+            return activeBtn.textContent;
+        }
+        
+        // 随机练习
+        function startRandomPractice() {
+            const newWords = vocabulary.filter(w => w.status === 'new' || w.status === 'difficult');
+            if (newWords.length === 0) {
+                alert('恭喜！你已经掌握了所有单词！');
+                return;
+            }
+            
+            const randomWord = newWords[Math.floor(Math.random() * newWords.length)];
+            showWordDetail(randomWord);
+        }
+        
+        // 重置进度
+        function resetProgress() {
+            if (confirm('确定要重置所有学习进度吗？')) {
+                vocabulary.forEach(word => {
+                    word.status = 'new';
+                    word.correctCount = 0;
+                    word.wrongCount = 0;
+                });
+                saveProgress();
+                renderWords();
+            }
+        }
+        
+        // 初始化
+        loadProgress();
+        renderWords();
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeWordDetail();
+            }
+        });
+    </script>
+</body>
+</html>

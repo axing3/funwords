@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答题页面 - FunWords</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .score {
+            color: #2CE8A2;
+            font-size: 18px;
+        }
+        .lives {
+            color: #ff3333;
+            font-size: 18px;
+        }
+        .question-card {
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 4px solid #444;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .word {
+            font-size: 36px;
+            color: #2CE8A2;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .option {
+            padding: 15px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border: 2px solid #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            background-color: rgba(44, 232, 162, 0.2);
+            border-color: #2CE8A2;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #666;
+            color: #ffffff;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .back-button:hover {
+            background-color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← 返回主页</a>
+        
+        <div class="header">
+            <div class="score">得分: <span id="score">0</span></div>
+            <div class="lives">生命: <span id="lives">❤️❤️❤️</span></div>
+        </div>
+        
+        <div class="question-card">
+            <div class="word" id="word">abandon</div>
+            <div class="question" id="question">请选择正确的中文意思：</div>
+            <div class="options" id="options">
+                <div class="option" onclick="checkAnswer(this, 0)">A. 放弃</div>
+                <div class="option" onclick="checkAnswer(this, 1)">B. 接受</div>
+                <div class="option" onclick="checkAnswer(this, 2)">C. 改变</div>
+                <div class="option" onclick="checkAnswer(this, 3)">D. 学习</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 扩展单词库
+        const words = [
+            { word: 'abandon', meaning: '放弃', options: ['放弃', '接受', '改变', '学习'], correct: 0 },
+            { word: 'ability', meaning: '能力', options: ['能力', '残疾', '可能', '友谊'], correct: 0 },
+            { word: 'absent', meaning: '缺席的', options: ['出席的', '缺席的', '绝对的', '抽象的'], correct: 1 },
+            { word: 'academy', meaning: '学院', options: ['学术', '学院', '接受', '接受'], correct: 1 },
+            { word: 'accept', meaning: '接受', options: ['拒绝', '接受', '怀疑', '考虑'], correct: 1 },
+            { word: 'accident', meaning: '事故', options: ['事件', '事故', '意外', '计划'], correct: 1 },
+            { word: 'achieve', meaning: '实现', options: ['失败', '实现', '放弃', '尝试'], correct: 1 },
+            { word: 'across', meaning: '穿过', options: ['穿过', '围绕', '在...之内', '在...之上'], correct: 0 },
+            { word: 'active', meaning: '积极的', options: ['消极的', '积极的', '被动的', '中立的'], correct: 1 },
+            { word: 'actual', meaning: '实际的', options: ['虚构的', '实际的', '可能的', '理论的'], correct: 1 }
+        ];
+
+        let currentWordIndex = 0;
+        let score = 0;
+        let lives = 3;
+        let correctAnswers = 0;
+        let totalQuestions = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let audioContext = null;
+        let gameStarted = false;
+
+        // 初始化音频
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 音效函数
+        function playSound(type) {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'correct':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    break;
+                case 'wrong':
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    break;
+                case 'gameOver':
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.5);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    break;
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = '❤️'.repeat(lives);
+            
+            const currentWord = words[currentWordIndex];
+            document.getElementById('word').textContent = currentWord.word;
+            document.getElementById('question').textContent = '请选择正确的中文意思：';
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            currentWord.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = String.fromCharCode(65 + index) + '. ' + option;
+                optionDiv.onclick = () => checkAnswer(optionDiv, index);
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
+
+        function checkAnswer(element, selectedIndex) {
+            // 第一次点击时初始化音频
+            if (!gameStarted) {
+                initAudio();
+                gameStarted = true;
+            }
+            
+            const currentWord = words[currentWordIndex];
+            totalQuestions++;
+            
+            if (selectedIndex === currentWord.correct) {
+                // 正确
+                element.style.backgroundColor = 'rgba(0, 255, 0, 0.3)';
+                element.style.borderColor = '#00ff00';
+                correctAnswers++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                score += 10 + (combo > 1 ? combo * 5 : 0); // 连击奖励
+                playSound('correct');
+                
+                // 显示连击
+                if (combo > 1) {
+                    showCombo(combo);
+                }
+            } else {
+                // 错误
+                element.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                element.style.borderColor = '#ff0000';
+                lives--;
+                combo = 0;
+                playSound('wrong');
+                
+                if (lives <= 0) {
+                    playSound('gameOver');
+                    setTimeout(() => {
+                        showResults();
+                    }, 1000);
+                    return;
+                }
+            }
+            
+            // 禁用所有选项
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.onclick = null);
+            
+            updateDisplay();
+            
+            // 1秒后下一题
+            setTimeout(() => {
+                currentWordIndex = Math.floor(Math.random() * words.length);
+                updateDisplay();
+            }, 1000);
+        }
+
+        function showCombo(comboCount) {
+            const comboDiv = document.createElement('div');
+            comboDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 48px;
+                color: #2CE8A2;
+                font-weight: bold;
+                z-index: 1000;
+                animation: comboFade 1s ease-out forwards;
+            `;
+            comboDiv.textContent = `${comboCount}x 连击!`;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes comboFade {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(comboDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(comboDiv);
+            }, 1000);
+        }
+
+        function showResults() {
+            const accuracy = Math.round((correctAnswers / totalQuestions) * 100);
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            
+            // 保存最高分
+            const highScore = localStorage.getItem('funwords-highscore') || 0;
+            if (score > highScore) {
+                localStorage.setItem('funwords-highscore', score);
+            }
+            
+            const resultsData = {
+                score: score,
+                totalQuestions: totalQuestions,
+                correctAnswers: correctAnswers,
+                accuracy: accuracy,
+                maxCombo: maxCombo,
+                timeSpent: timeSpent,
+                highScore: Math.max(score, highScore)
+            };
+            
+            // 跳转到结果页面
+            window.location.href = `results.html?data=${encodeURIComponent(JSON.stringify(resultsData))}`;
+        }
+
+        // 记录开始时间
+        const startTime = Date.now();
+
+        // 初始化
+        updateDisplay();
+    </script>
+</body>
+</html>

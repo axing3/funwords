@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>静态测试页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background-color: rgba(20, 20, 20, 0.9);
+            border: 4px solid #444;
+            box-shadow: 
+                -2px -2px 0px 0px rgba(255, 255, 255, 0.2),
+                2px -2px 0px 0px rgba(255, 255, 255, 0.2),
+                -2px 2px 0px 0px rgba(255, 255, 255, 0.2),
+                2px 2px 0px 0px rgba(0, 0, 0, 0.5),
+                4px 4px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #2CE8A2;
+            font-size: 48px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+        }
+        .subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            color: #ffffff;
+        }
+        .info {
+            font-size: 18px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .links {
+            margin-top: 40px;
+        }
+        .links a {
+            color: #2CE8A2;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: rgba(44, 232, 162, 0.1);
+            border: 2px solid #2CE8A2;
+            border-radius: 0;
+        }
+        .test-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            background-color: #2CE8A2;
+            color: #000000;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .test-button:hover {
+            background-color: #26d18f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FUNWORDS</h1>
+        <div class="subtitle">高考趣味背单词</div>
+        
+        <div class="info">
+            <p>如果你能看到这个页面，说明服务器运行正常</p>
+            <p>当前端口: 4173</p>
+            <p>页面类型: 静态HTML测试</p>
+        </div>
+        
+        <div class="status">
+            ✅ 基础HTML加载成功<br>
+            ✅ CSS样式加载成功<br>
+            ✅ 中文字体显示正常
+        </div>
+        
+        <button class="test-button" onclick="testButton()">测试按钮</button>
+        
+        <div class="links">
+            <a href="index.html">返回主页</a>
+        </div>
+    </div>
+
+    <script>
+        function testButton() {
+            alert('按钮工作正常！');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏进行中 - FunWords</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            color: #ffffff;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .hud-item {
+            font-size: 14px;
+            color: #2CE8A2;
+        }
+        
+        .lives {
+            color: #ff3333;
+            font-size: 18px;
+        }
+        
+        .combo {
+            color: #ffff00;
+            font-size: 16px;
+            animation: comboPulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes comboPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 100px 20px 20px;
+        }
+        
+        .question-card {
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 4px solid #2CE8A2;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 
+                -4px -4px 0px 0px rgba(44, 232, 162, 0.3),
+                4px -4px 0px 0px rgba(44, 232, 162, 0.3),
+                -4px 4px 0px 0px rgba(0, 0, 0, 0.5),
+                4px 4px 0px 0px rgba(0, 0, 0, 0.5);
+            animation: cardEntry 0.5s ease-out;
+        }
+        
+        @keyframes cardEntry {
+            from { 
+                transform: translateY(-50px) scale(0.8);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .word-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .word {
+            font-size: 48px;
+            color: #2CE8A2;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.8);
+        }
+        
+        .phonetic {
+            font-size: 16px;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+        
+        .question-type {
+            font-size: 14px;
+            color: #ffff00;
+            margin-bottom: 20px;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .option {
+            padding: 20px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border: 3px solid #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.3s;
+        }
+        
+        .option:hover::before {
+            left: 100%;
+        }
+        
+        .option:hover {
+            background-color: rgba(44, 232, 162, 0.2);
+            border-color: #2CE8A2;
+            transform: translate(2px, 2px);
+        }
+        
+        .option.correct {
+            background-color: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+            animation: correctAnswer 0.5s ease-out;
+        }
+        
+        .option.wrong {
+            background-color: rgba(255, 0, 0, 0.3);
+            border-color: #ff0000;
+            animation: wrongAnswer 0.5s ease-out;
+        }
+        
+        @keyframes correctAnswer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes wrongAnswer {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+        
+        .spelling-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 24px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border: 3px solid #666;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .spelling-input:focus {
+            outline: none;
+            border-color: #2CE8A2;
+            background-color: rgba(44, 232, 162, 0.1);
+        }
+        
+        .submit-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto;
+            padding: 15px 30px;
+            background-color: #2CE8A2;
+            color: #000000;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 
+                -2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+                2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+                -2px 2px 0px 0px rgba(0, 0, 0, 0.3),
+                2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        .audio-controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .audio-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #ff6600;
+            color: #ffffff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.2s;
+        }
+        
+        .audio-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        .audio-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #2CE8A2;
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+        
+        .powerup-indicator {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #ffff00;
+        }
+        
+        .screen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            z-index: 999;
+        }
+        
+        .screen-flash {
+            animation: screenFlash 0.3s ease-out;
+        }
+        
+        @keyframes screenFlash {
+            0% { background-color: rgba(255, 255, 255, 0); }
+            50% { background-color: rgba(255, 255, 255, 0.3); }
+            100% { background-color: rgba(255, 255, 255, 0); }
+        }
+        
+        .screen-shake {
+            animation: screenShake 0.5s;
+        }
+        
+        @keyframes screenShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+            20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        
+        .combo-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: #ffff00;
+            font-weight: bold;
+            z-index: 1000;
+            animation: comboPopup 1s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes comboPopup {
+            0% { 
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .pause-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 4px solid #2CE8A2;
+            padding: 40px;
+            text-align: center;
+            display: none;
+            z-index: 1001;
+        }
+        
+        .pause-menu.active {
+            display: block;
+        }
+        
+        .pause-menu h2 {
+            color: #2CE8A2;
+            margin-bottom: 30px;
+        }
+        
+        .pause-menu button {
+            display: block;
+            width: 200px;
+            margin: 10px auto;
+            padding: 15px 20px;
+            background-color: #2CE8A2;
+            color: #000000;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-overlay" id="screenOverlay"></div>
+    
+    <div class="game-hud">
+        <div class="hud-item">得分: <span id="score">0</span></div>
+        <div class="hud-item lives">生命: <span id="lives">❤️❤️❤️</span></div>
+        <div class="hud-item combo" id="comboDisplay"></div>
+        <div class="hud-item">等级: <span id="level">1</span></div>
+    </div>
+    
+    <div class="game-container">
+        <div class="question-card" id="questionCard">
+            <!-- 动态内容 -->
+        </div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <div class="powerup-indicator" id="powerupIndicator"></div>
+    
+    <div class="pause-menu" id="pauseMenu">
+        <h2>游戏暂停</h2>
+        <button onclick="resumeGame()">继续游戏</button>
+        <button onclick="quitGame()">退出游戏</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameMode = urlParams.get('mode') || 'choice';
+        
+        let score = 0;
+        let lives = 3;
+        let combo = 0;
+        let maxCombo = 0;
+        let currentQuestion = 0;
+        let totalQuestions = 20;
+        let correctAnswers = 0;
+        let gameActive = true;
+        let audioContext = null;
+        
+        // 词汇数据
+        const vocabulary = [
+            { word: 'abandon', meaning: '放弃', phonetic: '/əˈbændən/' },
+            { word: 'ability', meaning: '能力', phonetic: '/əˈbɪləti/' },
+            { word: 'absent', meaning: '缺席的', phonetic: '/ˈæbsənt/' },
+            { word: 'academy', meaning: '学院', phonetic: '/əˈkædəmi/' },
+            { word: 'accept', meaning: '接受', phonetic: '/əkˈsept/' },
+            { word: 'accident', meaning: '事故', phonetic: '/ˈæksɪdənt/' },
+            { word: 'achieve', meaning: '实现', phonetic: '/əˈtʃiːv/' },
+            { word: 'across', meaning: '穿过', phonetic: '/əˈkrɒs/' },
+            { word: 'active', meaning: '积极的', phonetic: '/ˈæktɪv/' },
+            { word: 'actual', meaning: '实际的', phonetic: '/ˈæktʃuəl/' },
+            { word: 'brilliant', meaning: '杰出的', phonetic: '/ˈbrɪljənt/' },
+            { word: 'concentrate', meaning: '集中注意力', phonetic: '/ˈkɒnsəntreɪt/' },
+            { word: 'determine', meaning: '决定', phonetic: '/dɪˈtɜːmɪn/' },
+            { word: 'efficient', meaning: '高效的', phonetic: '/ɪˈfɪʃnt/' },
+            { word: 'fascinating', meaning: '迷人的', phonetic: '/ˈfæsɪneɪtɪŋ/' },
+            { word: 'ambiguous', meaning: '模糊的', phonetic: '/æmˈbɪɡjuəs/' },
+            { word: 'benevolent', meaning: '仁慈的', phonetic: '/bəˈnevələnt/' },
+            { word: 'controversial', meaning: '有争议的', phonetic: '/ˌkɒntrəˈvɜːʃl/' },
+            { word: 'deteriorate', meaning: '恶化', phonetic: '/dɪˈtɪəriəreɪt/' },
+            { word: 'eloquent', meaning: '雄辩的', phonetic: '/ˈeləkwənt/' }
+        ];
+        
+        // 音频系统
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playSound(type) {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'correct':
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    break;
+                case 'wrong':
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    break;
+                case 'powerup':
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    break;
+                case 'gameOver':
+                    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.5);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    break;
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        // 获取随机单词
+        function getRandomWord() {
+            return vocabulary[Math.floor(Math.random() * vocabulary.length)];
+        }
+        
+        // 生成错误选项
+        function getWrongOptions(correctWord, count = 3) {
+            const wrongOptions = [];
+            const usedMeanings = new Set([correctWord.meaning]);
+            
+            while (wrongOptions.length < count) {
+                const randomWord = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                if (!usedMeanings.has(randomWord.meaning)) {
+                    wrongOptions.push(randomWord.meaning);
+                    usedMeanings.add(randomWord.meaning);
+                }
+            }
+            
+            return wrongOptions;
+        }
+        
+        // 显示选择题
+        function showChoiceQuestion() {
+            const word = getRandomWord();
+            const wrongOptions = getWrongOptions(word);
+            const allOptions = [word.meaning, ...wrongOptions].sort(() => Math.random() - 0.5);
+            
+            const questionCard = document.getElementById('questionCard');
+            questionCard.innerHTML = `
+                <div class="word-display">
+                    <div class="word">${word.word}</div>
+                    <div class="phonetic">${word.phonetic}</div>
+                    <div class="question-type">选择正确的中文意思</div>
+                </div>
+                <div class="options-grid">
+                    ${allOptions.map((option, index) => `
+                        <div class="option" onclick="checkAnswer(this, '${option}', '${word.meaning}')">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // 显示拼写题
+        function showSpellingQuestion() {
+            const word = getRandomWord();
+            
+            const questionCard = document.getElementById('questionCard');
+            questionCard.innerHTML = `
+                <div class="word-display">
+                    <div class="question-type">请拼写以下单词</div>
+                    <div class="word" style="font-size: 36px;">${word.meaning}</div>
+                    <div class="phonetic">${word.phonetic}</div>
+                </div>
+                <input type="text" class="spelling-input" id="spellingInput" 
+                       placeholder="输入英文单词" autocomplete="off" spellcheck="false">
+                <button class="submit-btn" onclick="checkSpelling('${word.word}')">提交答案</button>
+            `;
+            
+            // 回车提交
+            document.getElementById('spellingInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkSpelling(word.word);
+                }
+            });
+            
+            // 自动聚焦
+            setTimeout(() => {
+                document.getElementById('spellingInput').focus();
+            }, 100);
+        }
+        
+        // 显示听力题
+        function showAudioQuestion() {
+            const word = getRandomWord();
+            const wrongOptions = getWrongOptions(word);
+            const allOptions = [word.meaning, ...wrongOptions].sort(() => Math.random() - 0.5);
+            
+            const questionCard = document.getElementById('questionCard');
+            questionCard.innerHTML = `
+                <div class="word-display">
+                    <div class="question-type">听录音，选择正确的单词</div>
+                    <div class="audio-controls">
+                        <button class="audio-btn" onclick="playWordAudio('${word.word}')">
+                            🔊 播放发音
+                        </button>
+                    </div>
+                </div>
+                <div class="options-grid">
+                    ${allOptions.map((option, index) => `
+                        <div class="option" onclick="checkAnswer(this, '${option}', '${word.meaning}')">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // 自动播放
+            setTimeout(() => {
+                playWordAudio(word.word);
+            }, 500);
+        }
+        
+        // 播放单词音频（使用Web Speech API）
+        function playWordAudio(word) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.8;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // 检查答案
+        function checkAnswer(element, selected, correct) {
+            if (!gameActive) return;
+            
+            initAudio();
+            
+            // 禁用所有选项
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.onclick = null;
+                opt.style.cursor = 'default';
+            });
+            
+            if (selected === correct) {
+                element.classList.add('correct');
+                correctAnswers++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                score += 10 + (combo > 1 ? combo * 5 : 0);
+                playSound('correct');
+                
+                if (combo > 1) {
+                    showComboPopup(combo);
+                }
+            } else {
+                element.classList.add('wrong');
+                lives--;
+                combo = 0;
+                playSound('wrong');
+                screenShake();
+                
+                // 显示正确答案
+                document.querySelectorAll('.option').forEach(opt => {
+                    if (opt.textContent.includes(correct)) {
+                        opt.classList.add('correct');
+                    }
+                });
+            }
+            
+            updateHUD();
+            
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+        
+        // 检查拼写
+        function checkSpelling(correctWord) {
+            if (!gameActive) return;
+            
+            initAudio();
+            
+            const input = document.getElementById('spellingInput');
+            const userInput = input.value.toLowerCase().trim();
+            
+            if (userInput === correctWord.toLowerCase()) {
+                input.style.borderColor = '#00ff00';
+                input.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+                correctAnswers++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                score += 15 + (combo > 1 ? combo * 5 : 0);
+                playSound('correct');
+                
+                if (combo > 1) {
+                    showComboPopup(combo);
+                }
+            } else {
+                input.style.borderColor = '#ff0000';
+                input.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+                lives--;
+                combo = 0;
+                playSound('wrong');
+                screenShake();
+                
+                // 显示正确答案
+                setTimeout(() => {
+                    alert(`正确答案: ${correctWord}`);
+                }, 500);
+            }
+            
+            input.disabled = true;
+            updateHUD();
+            
+            setTimeout(() => {
+                nextQuestion();
+            }, 2000);
+        }
+        
+        // 显示连击
+        function showComboPopup(comboCount) {
+            const popup = document.createElement('div');
+            popup.className = 'combo-popup';
+            popup.textContent = `${comboCount}x 连击!`;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 1000);
+        }
+        
+        // 更新HUD
+        function updateHUD() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = '❤️'.repeat(lives);
+            document.getElementById('comboDisplay').textContent = combo > 1 ? `${combo}x 连击` : '';
+            document.getElementById('progressFill').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (lives <= 0) {
+                gameOver();
+                return;
+            }
+            
+            if (currentQuestion >= totalQuestions) {
+                gameComplete();
+                return;
+            }
+            
+            // 根据模式显示题目
+            switch(gameMode) {
+                case 'choice':
+                    showChoiceQuestion();
+                    break;
+                case 'spelling':
+                    showSpellingQuestion();
+                    break;
+                case 'audio':
+                    showAudioQuestion();
+                    break;
+                case 'mixed':
+                    const modes = ['choice', 'spelling', 'audio'];
+                    const randomMode = modes[Math.floor(Math.random() * modes.length)];
+                    switch(randomMode) {
+                        case 'choice':
+                            showChoiceQuestion();
+                            break;
+                        case 'spelling':
+                            showSpellingQuestion();
+                            break;
+                        case 'audio':
+                            showAudioQuestion();
+                            break;
+                    }
+                    break;
+            }
+            
+            updateHUD();
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameActive = false;
+            playSound('gameOver');
+            
+            // 保存最高分
+            const highScore = parseInt(localStorage.getItem('funwords-highscore') || '0');
+            if (score > highScore) {
+                localStorage.setItem('funwords-highscore', score.toString());
+            }
+            
+            // 保存统计
+            const totalGames = parseInt(localStorage.getItem('funwords-total-games') || '0') + 1;
+            const totalWords = parseInt(localStorage.getItem('funwords-total-words') || '0') + correctAnswers;
+            localStorage.setItem('funwords-total-games', totalGames.toString());
+            localStorage.setItem('funwords-total-words', totalWords.toString());
+            
+            // 计算经验值
+            const exp = correctAnswers * 10 + score / 10;
+            const playerLevel = parseInt(localStorage.getItem('funwords-player-level') || '1');
+            const playerExp = parseInt(localStorage.getItem('funwords-player-exp') || '0');
+            const newExp = playerExp + exp;
+            const expNeeded = playerLevel * 100;
+            
+            if (newExp >= expNeeded) {
+                localStorage.setItem('funwords-player-level', (playerLevel + 1).toString());
+                localStorage.setItem('funwords-player-exp', (newExp - expNeeded).toString());
+            } else {
+                localStorage.setItem('funwords-player-exp', newExp.toString());
+            }
+            
+            // 跳转到结果页面
+            setTimeout(() => {
+                const resultsData = {
+                    score: score,
+                    totalQuestions: totalQuestions,
+                    correctAnswers: correctAnswers,
+                    accuracy: Math.round((correctAnswers / totalQuestions) * 100),
+                    maxCombo: maxCombo,
+                    gameMode: gameMode,
+                    timeSpent: Math.floor((Date.now() - gameStartTime) / 1000),
+                    highScore: Math.max(score, highScore)
+                };
+                
+                window.location.href = `results.html?data=${encodeURIComponent(JSON.stringify(resultsData))}`;
+            }, 2000);
+        }
+        
+        // 游戏完成
+        function gameComplete() {
+            gameActive = false;
+            playSound('powerup');
+            screenFlash();
+            
+            // 完成奖励
+            score += lives * 50; // 剩余生命奖励
+            
+            setTimeout(() => {
+                gameOver();
+            }, 1000);
+        }
+        
+        // 屏幕特效
+        function screenFlash() {
+            const overlay = document.getElementById('screenOverlay');
+            overlay.classList.add('screen-flash');
+            setTimeout(() => {
+                overlay.classList.remove('screen-flash');
+            }, 300);
+        }
+        
+        function screenShake() {
+            const overlay = document.getElementById('screenOverlay');
+            overlay.classList.add('screen-shake');
+            setTimeout(() => {
+                overlay.classList.remove('screen-shake');
+            }, 500);
+        }
+        
+        // 暂停游戏
+        function pauseGame() {
+            if (!gameActive) return;
+            gameActive = false;
+            document.getElementById('pauseMenu').classList.add('active');
+        }
+        
+        function resumeGame() {
+            gameActive = true;
+            document.getElementById('pauseMenu').classList.remove('active');
+        }
+        
+        function quitGame() {
+            if (confirm('确定要退出游戏吗？')) {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                if (document.getElementById('pauseMenu').classList.contains('active')) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            }
+        });
+        
+        // 游戏开始时间
+        const gameStartTime = Date.now();
+        
+        // 初始化游戏
+        updateHUD();
+        nextQuestion();
+        
+        // 显示游戏模式
+        const modeNames = {
+            'choice': '选择题模式',
+            'spelling': '拼写模式',
+            'audio': '听力模式',
+            'mixed': '混合模式'
+        };
+        document.title = `${modeNames[gameMode]} - FunWords`;
+    </script>
+</body>
+</html>

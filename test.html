@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0e1a;
+            color: white;
+            font-family: monospace;
+        }
+        .test-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        h1 {
+            color: #2CE8A2;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Basic HTML Test</h1>
+        <p>If you can see this, HTML is working</p>
+        <div id="root-test">React root test area</div>
+    </div>
+    <script type="module">
+        // Test if modules work
+        console.log('Module loading test');
+        document.getElementById('root-test').innerHTML = 'Modules are working!';
+    </script>
+</body>
+</html>

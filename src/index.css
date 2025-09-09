@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 142 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 142 100% 50%;
+    --success: 142 100% 50%;
+    --error: 0 85% 60%;
+    --radius: 0;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 142 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 142 100% 50%;
+  }
+}
+
+@layer base {
+  body {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    background: #000000;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .pixel-border {
+    box-shadow: 
+      -2px -2px 0px 0px rgba(255, 255, 255, 0.1),
+      2px -2px 0px 0px rgba(255, 255, 255, 0.1),
+      -2px 2px 0px 0px rgba(255, 255, 255, 0.1),
+      2px 2px 0px 0px rgba(0, 0, 0, 0.5),
+      4px 4px 0px 0px rgba(0, 0, 0, 0.3);
+  }
+  
+  .pixel-button {
+    position: relative;
+    box-shadow: 
+      -2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+      2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+      -2px 2px 0px 0px rgba(0, 0, 0, 0.3),
+      2px 2px 0px 0px rgba(0, 0, 0, 0.3),
+      4px 4px 0px 0px rgba(0, 0, 0, 0.2);
+    transition: all 0.1s;
+  }
+  
+  .pixel-button:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 
+      -2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+      2px -2px 0px 0px rgba(255, 255, 255, 0.3),
+      -2px 2px 0px 0px rgba(0, 0, 0, 0.3),
+      2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+  }
+  
+  .pixel-button:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+  
+  @keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+  
+  .screen-shake {
+    animation: screenShake 0.5s;
+  }
+  
+  @keyframes pixelFlash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  
+  .pixel-flash {
+    animation: pixelFlash 0.3s ease-in-out 3;
+  }
+  
+  @keyframes comboGlow {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 0px rgba(44, 232, 162, 0)); }
+    50% { filter: brightness(1.2) drop-shadow(0 0 10px rgba(44, 232, 162, 0.8)); }
+  }
+  
+  .combo-glow {
+    animation: comboGlow 0.5s ease-in-out;
+  }
+}
